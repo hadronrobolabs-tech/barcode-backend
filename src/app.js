@@ -2,12 +2,30 @@ const express = require('express');
 const app = express();
 
 const cors = require('cors');
+
+// CORS configuration - allow both localhost (development) and Vercel (production)
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://barcode-frontend-eight.vercel.app'
+];
+
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://barcode-frontend-eight.vercel.app/");
+  const origin = req.headers.origin;
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
+  
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  
   next();
 });
 
