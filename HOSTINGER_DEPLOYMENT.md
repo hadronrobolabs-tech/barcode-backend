@@ -27,17 +27,48 @@ npm install --production
 
 ### 3. Environment Variables
 
-Create a `.env` file in the project root:
+**IMPORTANT:** On Hostinger, you can set environment variables in two ways:
 
-```env
-DB_HOST=your_hostinger_db_host
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_database_name
-JWT_SECRET=your_secure_jwt_secret_key
-PORT=3000
-NODE_ENV=production
-```
+#### Option A: Hostinger Control Panel (Recommended)
+
+1. Go to Hostinger Control Panel
+2. Navigate to your application/domain settings
+3. Find "Environment Variables" or "App Settings"
+4. Add these variables:
+   ```
+   DB_HOST=your_hostinger_db_host
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_NAME=your_database_name
+   JWT_SECRET=your_secure_jwt_secret_key
+   PORT=3000
+   NODE_ENV=production
+   ```
+5. **Restart your application** after setting variables
+
+#### Option B: .env File
+
+If control panel doesn't support environment variables, create a `.env` file:
+
+1. Create `.env` file in project root (same level as `package.json`):
+   ```env
+   DB_HOST=your_hostinger_db_host
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_NAME=your_database_name
+   JWT_SECRET=your_secure_jwt_secret_key
+   PORT=3000
+   NODE_ENV=production
+   ```
+
+2. Upload `.env` file to Hostinger (same directory as `package.json`)
+
+3. Set file permissions:
+   ```bash
+   chmod 600 .env
+   ```
+
+**See `HOSTINGER_ENV_SETUP.md` for detailed troubleshooting if variables are not loading.**
 
 ### 4. Database Setup
 
