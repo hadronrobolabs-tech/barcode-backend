@@ -27,8 +27,8 @@ Node.js/Express backend API for barcode management system.
 npm install
 ```
 
-2. Create `.env` file with the following variables:
-```
+2. Create `.env` file in the root directory with the following variables:
+```env
 DB_HOST=localhost
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
@@ -37,12 +37,29 @@ JWT_SECRET=your_jwt_secret_key
 PORT=3000
 ```
 
-3. Run database migrations (if any)
+3. Run database migrations (if any):
+   - Check for any SQL migration files in the project root
+   - Run them against your database
 
 4. Start the server:
 ```bash
+# Production mode
 npm start
+
+# Development mode (with auto-reload)
+npm run dev
 ```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_HOST` | MySQL database host | `localhost` |
+| `DB_USER` | MySQL database user | `root` |
+| `DB_PASSWORD` | MySQL database password | - |
+| `DB_NAME` | MySQL database name | `barcode_application` |
+| `JWT_SECRET` | Secret key for JWT tokens | - |
+| `PORT` | Server port | `3000` |
 
 ## API Endpoints
 
