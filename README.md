@@ -13,18 +13,30 @@ Node.js/Express backend API for barcode management system.
 
 ## Tech Stack
 
-- Node.js
-- Express.js
+- Node.js 22.x
+- Express.js 5.x
 - MySQL
 - JWT Authentication
 - PDFKit (for barcode PDF generation)
 - bwip-js (for barcode image generation)
 
+## Requirements
+
+- Node.js >= 22.0.0
+- npm >= 10.0.0
+
 ## Setup
+
+**Note:** This project requires Node.js 22.x. Make sure you have the correct version installed.
 
 1. Install dependencies:
 ```bash
 npm install
+```
+
+If using nvm, the `.nvmrc` file will automatically use Node.js 22:
+```bash
+nvm use
 ```
 
 2. Create `.env` file in the root directory with the following variables:
