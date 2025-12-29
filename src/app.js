@@ -33,26 +33,13 @@ if (CORS_DEBUG) {
   ];
   
   app.use(cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return callback(null, true);
-      }
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.warn(`⚠️  CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: false,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-    exposedHeaders: ['Content-Length'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    origin: '*',
+    methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization']
   }));
+
+  app.options('*', cors());
+
 }
 
 require('./config/db');
