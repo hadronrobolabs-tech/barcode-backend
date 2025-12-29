@@ -12,7 +12,7 @@ if (CORS_DEBUG) {
   console.warn('⚠️  CORS: Allowing all origins (wildcard enabled)');
   app.use(cors({
     origin: true, // Allow all origins
-    credentials: true,
+    credentials: false,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
     exposedHeaders: ['Content-Length'],
