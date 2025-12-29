@@ -4,43 +4,27 @@ const app = express();
 const cors = require('cors');
 
 // CORS configuration - Allow all origins
-// Set CORS_DEBUG=false in environment to restrict to specific origins
-const CORS_DEBUG = process.env.CORS_DEBUG !== 'false'; // Default to true (allow all)
+// This MUST be the FIRST middleware to handle preflight OPTIONS requests
+console.log('🔧 CORS: Configuring to allow all origins');
 
-// Apply CORS as the FIRST middleware - this is critical!
-if (CORS_DEBUG) {
-  console.warn('⚠️  CORS: Allowing all origins (wildcard enabled)');
-  app.use(cors({
-    origin: true, // Allow all origins
-    credentials: false,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-    exposedHeaders: ['Content-Length'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-  }));
-  
-  // Add request logging for debugging
-  app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
-    next();
-  });
-} else {
-  // Specific origins mode (when CORS_DEBUG=false)
-  const allowedOrigins = [
-    'http://localhost:4200',
-    'https://barcode-frontend-eight.vercel.app'
-  ];
-  
-  app.use(cors({
-    origin: '*',
-    methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization']
-  }));
+app.use(cors({
+  origin: '*', // Allow all origins
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Access-Control-Allow-Origin'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
-  app.options('*', cors());
+// Explicitly handle OPTIONS requests for all routes
+app.options('*', cors());
 
-}
+// Add request logging for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  next();
+});
 
 require('./config/db');
 const errorMiddleware = require('./middlewares/error.middleware');
