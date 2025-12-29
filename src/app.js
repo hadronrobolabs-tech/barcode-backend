@@ -3,10 +3,11 @@ const app = express();
 
 const cors = require('cors');
 
-// CORS configuration - allow both localhost (development) and Vercel (production)
+// CORS configuration - use '*' to allow all origins, or specify specific origins
 const allowedOrigins = [
   'http://localhost:4200',
-  'https://barcode-frontend-eight.vercel.app'
+  'https://barcode-frontend-eight.vercel.app',
+  '*' // Allow all origins if '*' is present
 ];
 
 // Normalize origin by removing trailing slash
@@ -30,41 +31,60 @@ if (CORS_DEBUG) {
     optionsSuccessStatus: 200
   }));
 } else {
-  // Configure CORS middleware using cors package
-  app.use(cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        console.log('✅ CORS: Allowing request with no origin');
-        return callback(null, true);
-      }
-      
-      // Normalize the origin (remove trailing slash)
-      const normalizedOrigin = normalizeOrigin(origin);
-      
-      // Check if origin is in allowed list (case-insensitive, handle trailing slashes)
-      const isAllowed = allowedOrigins.some(allowed => {
-        const normalizedAllowed = normalizeOrigin(allowed);
-        return normalizedOrigin.toLowerCase() === normalizedAllowed.toLowerCase();
-      });
-      
-      if (isAllowed) {
-        console.log(`✅ CORS: Allowing origin: ${origin}`);
-        callback(null, true);
-      } else {
-        // Log blocked origin for debugging
-        console.warn(`⚠️  CORS blocked origin: ${origin}`);
-        console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-    exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
-    preflightContinue: false,
-    optionsSuccessStatus: 200
-  }));
+  // Check if '*' is in allowedOrigins to allow all origins
+  const allowAllOrigins = allowedOrigins.includes('*');
+  
+  if (allowAllOrigins) {
+    console.warn('⚠️  CORS: Allowing all origins (wildcard * is enabled)');
+    app.use(cors({
+      origin: true, // Allow all origins
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+      exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+      preflightContinue: false,
+      optionsSuccessStatus: 200
+    }));
+  } else {
+    // Configure CORS middleware using cors package with specific origins
+    app.use(cors({
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) {
+          console.log('✅ CORS: Allowing request with no origin');
+          return callback(null, true);
+        }
+        
+        // Normalize the origin (remove trailing slash)
+        const normalizedOrigin = normalizeOrigin(origin);
+        
+        // Filter out '*' from allowedOrigins for comparison
+        const specificOrigins = allowedOrigins.filter(o => o !== '*');
+        
+        // Check if origin is in allowed list (case-insensitive, handle trailing slashes)
+        const isAllowed = specificOrigins.some(allowed => {
+          const normalizedAllowed = normalizeOrigin(allowed);
+          return normalizedOrigin.toLowerCase() === normalizedAllowed.toLowerCase();
+        });
+        
+        if (isAllowed) {
+          console.log(`✅ CORS: Allowing origin: ${origin}`);
+          callback(null, true);
+        } else {
+          // Log blocked origin for debugging
+          console.warn(`⚠️  CORS blocked origin: ${origin}`);
+          console.warn(`   Allowed origins: ${specificOrigins.join(', ')}`);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+      exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+      preflightContinue: false,
+      optionsSuccessStatus: 200
+    }));
+  }
 }
 
 require('./config/db');
