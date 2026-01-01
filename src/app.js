@@ -1,9 +1,7 @@
 const express = require("express");
 const app = express();
 
-/* ============================
-   Hostinger CORS FIX (MANDATORY)
-   ============================ */
+/* Hostinger CORS */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
@@ -12,43 +10,27 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ============================
-   Body Parser
-   ============================ */
 app.use(express.json());
 
-/* ============================
-   Safe DB Loader
-   ============================ */
-let dbHealthy = false;
-let db;
-
+/* Load DB (never crash) */
 try {
-  db = require("./config/db");
-  dbHealthy = true;
-  console.log("✅ DB Module Loaded");
+  require("./config/db");
+  console.log("✅ DB module loaded");
 } catch (e) {
-  console.error("❌ DB Load Failed:", e.message);
+  console.error("❌ DB module failed:", e.message);
 }
 
-/* ============================
-   Health Endpoint (NEVER FAILS)
-   ============================ */
+/* Health (always alive, real DB check) */
 app.get("/health", async (req, res) => {
   try {
-    if (!dbHealthy) throw new Error("DB not loaded");
-    const conn = await db.getConnection();
-    await conn.ping();
-    conn.release();
-    return res.json({ status: "OK", db: true });
+    await global.db.query("SELECT 1");
+    res.json({ status: "OK", db: true });
   } catch (e) {
-    return res.json({ status: "OK", db: false });
+    res.json({ status: "OK", db: false });
   }
 });
 
-/* ============================
-   API Routes
-   ============================ */
+/* API Routes */
 app.use("/api/auth", require("./modules/auth/auth.routes"));
 app.use("/api/components", require("./modules/component/component.routes"));
 app.use("/api/categories", require("./modules/category/category.routes"));
@@ -58,9 +40,7 @@ app.use("/api/scans", require("./modules/scan/scan.routes"));
 app.use("/api/boxes", require("./modules/box/box.routes"));
 app.use("/api/history", require("./modules/history/history.routes"));
 
-/* ============================
-   Global Error Handler
-   ============================ */
+/* Error handler */
 const errorMiddleware = require("./middlewares/error.middleware");
 app.use(errorMiddleware);
 
