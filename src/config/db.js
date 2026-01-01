@@ -1,10 +1,4 @@
-const mysql = require('mysql2');
-
-if (!process.env.DB_HOST) {
-  console.warn("⚠️ DB env missing — server will run without DB");
-  module.exports = null;
-  return;
-}
+const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -12,19 +6,21 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: 10,
+  queueLimit: 0,
+  connectTimeout: 15000
 });
 
-/* test connection but never crash */
-pool.getConnection()
-  .then(conn => {
-    console.log("✅ DB connected");
+// Test DB once at startup
+(async () => {
+  try {
+    const conn = await pool.getConnection();
+    await conn.ping();
     conn.release();
-    global.db = pool.promise();
-  })
-  .catch(err => {
-    console.error("❌ DB connection failed:", err.message);
-    global.db = null;
-  });
+    console.log("✅ MySQL Connected");
+  } catch (err) {
+    console.error("❌ MySQL Connection Failed:", err.message);
+  }
+})();
 
-module.exports = pool.promise();
+module.exports = pool;
