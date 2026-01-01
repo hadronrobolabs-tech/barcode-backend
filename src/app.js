@@ -1,7 +1,9 @@
 const express = require("express");
 const app = express();
 
-/* Hostinger CORS */
+/* =========================
+   Hostinger CORS FIX
+   ========================= */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
@@ -12,25 +14,36 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-/* Load DB (never crash) */
+/* =========================
+   Load DB Safely
+   ========================= */
+let db;
+
 try {
-  require("./config/db");
+  db = require("./config/db");      // ← REAL pool
   console.log("✅ DB module loaded");
 } catch (e) {
   console.error("❌ DB module failed:", e.message);
 }
 
-/* Health (always alive, real DB check) */
+/* =========================
+   Health Endpoint (REAL CHECK)
+   ========================= */
 app.get("/health", async (req, res) => {
   try {
-    await global.db.query("SELECT 1");
+    if (!db) throw new Error("DB module missing");
+    const conn = await db.getConnection();
+    await conn.ping();
+    conn.release();
     res.json({ status: "OK", db: true });
   } catch (e) {
-    res.json({ status: "OK", db: false });
+    res.json({ status: "OK", db: false, error: e.message });
   }
 });
 
-/* API Routes */
+/* =========================
+   API Routes
+   ========================= */
 app.use("/api/auth", require("./modules/auth/auth.routes"));
 app.use("/api/components", require("./modules/component/component.routes"));
 app.use("/api/categories", require("./modules/category/category.routes"));
@@ -40,7 +53,9 @@ app.use("/api/scans", require("./modules/scan/scan.routes"));
 app.use("/api/boxes", require("./modules/box/box.routes"));
 app.use("/api/history", require("./modules/history/history.routes"));
 
-/* Error handler */
+/* =========================
+   Error Handler
+   ========================= */
 const errorMiddleware = require("./middlewares/error.middleware");
 app.use(errorMiddleware);
 
