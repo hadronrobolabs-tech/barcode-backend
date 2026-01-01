@@ -1,7 +1,6 @@
 const mysql = require("mysql2/promise");
 
-// Safe ENV debug (does NOT print password)
-console.log("🔎 ENV CHECK:", {
+console.log("ENV:", {
   DB_HOST: process.env.DB_HOST,
   DB_PORT: process.env.DB_PORT,
   DB_USER: process.env.DB_USER,
@@ -9,36 +8,24 @@ console.log("🔎 ENV CHECK:", {
   HAS_PASSWORD: !!process.env.DB_PASSWORD
 });
 
-// Hard fail if anything missing
-if (
-  !process.env.DB_HOST ||
-  !process.env.DB_PORT ||
-  !process.env.DB_USER ||
-  !process.env.DB_PASSWORD ||
-  !process.env.DB_NAME
-) {
-  console.error("❌ Missing Railway MySQL ENV variables");
-  process.exit(1);
-}
-
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,          // mysql.railway.internal
-  port: Number(process.env.DB_PORT),  // 3306
-  user: process.env.DB_USER,          // root
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,      // railway
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10
 });
 
 (async () => {
   try {
-    const conn = await pool.getConnection();
-    await conn.ping();
-    conn.release();
+    const c = await pool.getConnection();
+    await c.ping();
+    c.release();
     console.log("✅ Railway MySQL Connected");
-  } catch (err) {
-    console.error("❌ MySQL Connection Failed:", err);
+  } catch (e) {
+    console.error("❌ MySQL Connection Failed:", e);
   }
 })();
 
