@@ -1,7 +1,9 @@
 const mysql = require("mysql2/promise");
 
+console.log("🔍 ENV MYSQL_URL =", process.env.MYSQL_URL); // debug line
+
 if (!process.env.MYSQL_URL) {
-  throw new Error("❌ MYSQL_URL is missing. Check Railway Variables or .env");
+  throw new Error("❌ MYSQL_URL is missing. Check Railway Variables.");
 }
 
 const pool = mysql.createPool(process.env.MYSQL_URL);
