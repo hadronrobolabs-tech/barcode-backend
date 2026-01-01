@@ -1,10 +1,9 @@
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
-const express = require('express');
+const express = require("express");
 const app = express();
 
-/* CORS FIX */
+/* ============================
+   Hostinger CORS FIX (MANDATORY)
+   ============================ */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
@@ -13,32 +12,56 @@ app.use((req, res, next) => {
   next();
 });
 
+/* ============================
+   Body Parser
+   ============================ */
 app.use(express.json());
 
-/* Load DB safely */
+/* ============================
+   Safe DB Loader
+   ============================ */
+let dbHealthy = false;
+let db;
+
 try {
-  require('./config/db');
-  console.log("✅ DB module loaded");
+  db = require("./config/db");
+  dbHealthy = true;
+  console.log("✅ DB Module Loaded");
 } catch (e) {
-  console.error("❌ DB load failed:", e.message);
+  console.error("❌ DB Load Failed:", e.message);
 }
 
-/* Health must ALWAYS respond */
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', db: !!global.db });
+/* ============================
+   Health Endpoint (NEVER FAILS)
+   ============================ */
+app.get("/health", async (req, res) => {
+  try {
+    if (!dbHealthy) throw new Error("DB not loaded");
+    const conn = await db.getConnection();
+    await conn.ping();
+    conn.release();
+    return res.json({ status: "OK", db: true });
+  } catch (e) {
+    return res.json({ status: "OK", db: false });
+  }
 });
 
-/* Routes */
-app.use('/api/auth', require('./modules/auth/auth.routes'));
-app.use('/api/components', require('./modules/component/component.routes'));
-app.use('/api/categories', require('./modules/category/category.routes'));
-app.use('/api/kits', require('./modules/kit/kit.routes'));
-app.use('/api/barcodes', require('./modules/barcode/barcode.routes'));
-app.use('/api/scans', require('./modules/scan/scan.routes'));
-app.use('/api/boxes', require('./modules/box/box.routes'));
-app.use('/api/history', require('./modules/history/history.routes'));
+/* ============================
+   API Routes
+   ============================ */
+app.use("/api/auth", require("./modules/auth/auth.routes"));
+app.use("/api/components", require("./modules/component/component.routes"));
+app.use("/api/categories", require("./modules/category/category.routes"));
+app.use("/api/kits", require("./modules/kit/kit.routes"));
+app.use("/api/barcodes", require("./modules/barcode/barcode.routes"));
+app.use("/api/scans", require("./modules/scan/scan.routes"));
+app.use("/api/boxes", require("./modules/box/box.routes"));
+app.use("/api/history", require("./modules/history/history.routes"));
 
-const errorMiddleware = require('./middlewares/error.middleware');
+/* ============================
+   Global Error Handler
+   ============================ */
+const errorMiddleware = require("./middlewares/error.middleware");
 app.use(errorMiddleware);
 
 module.exports = app;
