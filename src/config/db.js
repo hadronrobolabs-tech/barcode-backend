@@ -7,16 +7,16 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
   connectTimeout: 15000
 });
 
-// Test DB once at startup
+/* Make pool global so health can access directly */
+global.db = pool;
+
+/* Startup verification */
 (async () => {
   try {
-    const conn = await pool.getConnection();
-    await conn.ping();
-    conn.release();
+    const [rows] = await pool.query("SELECT 1");
     console.log("✅ MySQL Connected");
   } catch (err) {
     console.error("❌ MySQL Connection Failed:", err.message);
